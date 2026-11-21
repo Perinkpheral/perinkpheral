@@ -32,6 +32,20 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
 - `poll_run()` asked again within a second from its poll's own answer runs when the second is
   up, not a whole period later.
 
+## next
+
+- A module cut short by a loss of power while it is written into the code partition can no
+  longer be taken, by what its body holds, for another application's module.
+- A catalog entry that names a file twice is refused before anything is downloaded; it leaked
+  memory at every install.
+- A first installation that fails leaves no empty folder behind; those left before go at the
+  next start.
+- An update of an application that writes files counts the files it keeps with the package's
+  against its 32 KB.
+- The page answers while a slow source is read for the catalog; an install meanwhile is told
+  "Device busy." and tried again, as during another install.
+- An application's setting saved empty opens empty, not with its default.
+
 ## 0.1.77
 
 - BACK held with UP or DOWN switches applications even when the whole chord is made while the
