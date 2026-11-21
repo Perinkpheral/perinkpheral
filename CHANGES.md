@@ -11,18 +11,12 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
 - A press made while the next notification or question was still being drawn no longer answers
   it.
 - After switching applications with BACK held, presses sent by the development tools act again.
-
-## next
-
 - Changing catalog sources drops outdated offers and queued installs before source indices can change.
   Saving explains when it waits for an install; a refused save keeps the edited source rows.
 - Settings fail to load cleanly when memory runs out instead of returning incomplete values.
 - Saving app settings preserves a form opened for another app while that save was pending.
   A reopened form for the saved app closes after reloading to avoid saving stale values again.
 - A catalog entry with a malformed firmware minimum no longer stops the catalog from rendering.
-
-## next
-
 - Simulator reloads discard pending requests and answers from the previous run.
 - Simulator requests use current credentials and recheck destinations before sending.
 - Application builds reject setting defaults the device cannot load.
@@ -31,17 +25,6 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
 - Ordinary CMake application builds refresh changed strings and pictures.
 - Publishing recognizes the official Perinkpheral application repository.
 - Binary PBM pictures keep raster bytes that resemble comments or whitespace.
-
-## 0.1.78
-
-- A new firmware with no network stored is confirmed only when its setup access point is really
-  up, not when it should have been.
-- A new firmware whose confirmation cannot be written restarts into recovery instead of staying on
-  probation and refusing every update.
-- Recovery gives back what a failed start of an upload took.
-
-## next
-
 - A server that sends its answer a byte at a time no longer holds the device's one request,
   and the radio, past the request's time: the connection is closed when the time is up, in the
   middle of a read too.
@@ -51,9 +34,6 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
   32nd never ran.
 - `poll_run()` asked again within a second from its poll's own answer runs when the second is
   up, not a whole period later.
-
-## next
-
 - A module cut short by a loss of power while it is written into the code partition can no
   longer be taken, by what its body holds, for another application's module.
 - A catalog entry that names a file twice is refused before anything is downloaded; it leaked
@@ -65,9 +45,6 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
 - The page answers while a slow source is read for the catalog; an install meanwhile is told
   "Device busy." and tried again, as during another install.
 - An application's setting saved empty opens empty, not with its default.
-
-## next
-
 - An application's handler is stopped at 3 seconds also when it spends them in calls to
   Perinkpheral OS: the clock is looked at after every call, not once in a thousand of them.
 - An application that loops while it loads is stopped once, not given a second 3 seconds.
@@ -77,6 +54,14 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
   of emptying the list of installed applications.
 - A notice posted while a long BACK leaves an application waits for the next press, as
   notices that were showing already did, and does not open over the menu.
+
+## 0.1.78
+
+- A new firmware with no network stored is confirmed only when its setup access point is really
+  up, not when it should have been.
+- A new firmware whose confirmation cannot be written restarts into recovery instead of staying on
+  probation and refusing every update.
+- Recovery gives back what a failed start of an upload took.
 
 ## 0.1.77
 

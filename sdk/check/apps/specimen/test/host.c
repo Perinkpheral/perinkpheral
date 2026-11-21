@@ -40,6 +40,9 @@ static void test_store(void)
     /* Replacing a value counts the room without what it replaces. */
     assert(kv_set("more", 4, bytes, 10) == HOST_OK && kv_set("one", 3, bytes, 1) == HOST_OK);
     assert(standin()->store_writes == 8 && standin()->refused_writes == 3);
+    /* A name of a length the contract does not take is refused without being read. */
+    static const char lone[1] = { 'x' };
+    assert(kv_set(lone, -1, bytes, 1) == HOST_ERR_ARGUMENT && file_write(lone, -1, 0, bytes, 1) == HOST_ERR_ARGUMENT);
     /* A key is 1-15 printable characters; a "url" setting is the user's. */
     assert(kv_set("", 0, bytes, 1) == HOST_ERR_ARGUMENT);
     assert(kv_set("sixteen-letters!", 16, bytes, 1) == HOST_ERR_ARGUMENT);

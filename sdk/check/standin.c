@@ -437,7 +437,8 @@ int32_t kv_set(const char *key, int32_t key_length, const void *bytes, int32_t l
     const standin_setting_t *setting = is_key(key, key_length) ? setting_of(key, key_length) : NULL;
     if (!is_key(key, key_length) || length < 0 || length > HOST_KV_VALUE_MAX || (bytes == NULL && length > 0) ||
         (setting != NULL && setting->kind == STANDIN_SETTING_USERS)) {
-        return refused_write(HOST_ERR_ARGUMENT, "kv_set", key != NULL ? key : "", key != NULL ? key_length : 0, length);
+        bool is_shown = key != NULL && key_length >= 0 && key_length <= HOST_KV_KEY_MAX;
+        return refused_write(HOST_ERR_ARGUMENT, "kv_set", is_shown ? key : "", is_shown ? key_length : 0, length);
     }
     host->handler_writes++;
     if (host->refuse_writes != HOST_OK) {
@@ -572,7 +573,8 @@ int32_t file_write(const char *name, int32_t name_length, int32_t offset, const 
         length > WASM_PAGE_BYTES || offset > HOST_FILES_MAX ||
         /* Nothing written somewhere but at the start is no removal: app_store.c refuses it. */
         (length == 0 && offset != 0)) {
-        return refused_write(HOST_ERR_ARGUMENT, "file_write", name != NULL ? name : "", name != NULL ? name_length : 0, length);
+        bool is_shown = name != NULL && name_length >= 0 && name_length <= HOST_FILE_NAME_MAX;
+        return refused_write(HOST_ERR_ARGUMENT, "file_write", is_shown ? name : "", is_shown ? name_length : 0, length);
     }
     standin_stored_file_t *file = file_of(name, name_length);
     if (offset > (file != NULL ? file->size : 0)) {
@@ -1183,6 +1185,13 @@ int32_t http_send(int32_t tag, int32_t method, const char *url, int32_t url_leng
     char written[STANDIN_URL_BYTES], filled[STANDIN_URL_BYTES];
     copy(written, url, (size_t)url_length);
     written[url_length] = '\0';
+    for (const char *open = strstr(written, "{{"); open != NULL; open = strstr(open + 2, "{{")) {
+        const char *close = strstr(open + 2, "}}");
+        if (close == NULL || close == open + 2 || close - (open + 2) > HOST_KV_KEY_MAX) {
+            return refused_request(HOST_ERR_ARGUMENT, "a {{ in the address with no key and }} after it");
+        }
+        open = close;
+    }
     if (!standin_fill_url(written, filled, sizeof filled)) {
         return HOST_ERR_ARGUMENT; /* a value it needs is not set: the user's to do, no fault */
     }
@@ -1336,6 +1345,9 @@ static bool fill_text(const char *written, const standin_poll_t *asked, int32_t 
     int32_t used = 0;
     for (const char *at = written; *at != '\0';) {
         const char *close = at[0] == '{' && at[1] == '{' ? strstr(at, "}}") : NULL;
+        if (at[0] == '{' && at[1] == '{' && (close == NULL || close == at + 2 || close - (at + 2) > HOST_KV_KEY_MAX)) {
+            return false;
+        }
         if (close == NULL) {
             if (used + 1 >= capacity) {
                 return false;
@@ -2077,6 +2089,7 @@ int32_t ui_draw_text(int32_t x, int32_t y, int32_t style, const char *text, int3
         return refused_draw("ui_draw_text");
     }
     char cut[HOST_TEXT_MAX + 4];
+    length = text_shown(text, length);
     int32_t cut_length = max_width > 0 ? fit(STYLE_FONTS[style], text, length, max_width, cut)
                                        : fit(STYLE_FONTS[style], text, length, COORDINATE_LIMIT * HOST_TEXT_MAX, cut);
     int32_t numbers[] = { x, y, style };
@@ -2289,6 +2302,9 @@ int32_t ui_draw_value(int32_t x, int32_t y, int32_t font, const char *value, int
     mix_text(value, value_length);
     mix_number(0);
     mix_text(unit, unit_length);
+    if (text_shown(value, value_length) == 0 && text_shown(unit, unit_length) == 0) {
+        world->draw_calls--; /* kit_value() draws nothing of an empty value with no unit */
+    }
     return value_width(font, value, value_length, unit, unit_length);
 }
 
@@ -2387,6 +2403,13 @@ int32_t ui_draw_chart(const host_chart_t *chart, const int32_t *values)
     }
     mix(chart, sizeof *chart);
     mix(values, (size_t)chart->count * sizeof values[0]);
+    bool has_value = false;
+    for (int32_t index = 0; index < chart->count; index++) {
+        has_value = has_value || values[index] != HOST_CHART_NO_VALUE;
+    }
+    if (!has_value) {
+        world->draw_calls--; /* kit_chart() draws nothing of a chart of no values */
+    }
     return HOST_OK;
 }
 

@@ -269,7 +269,7 @@ static void back_out(void *context)
 }
 
 static void deliver(int32_t request, int32_t item, bool is_picked, const char *url, bool is_ready, bool is_permitted,
-                    const round_t *round)
+                    const round_t *round, bool is_head)
 {
     standin_t *host = standin();
     answer_t answer = { 0 };
@@ -314,6 +314,9 @@ static void deliver(int32_t request, int32_t item, bool is_picked, const char *u
     if (round->kind == ROUND_FAILED_LATE && status < 0) {
         status = HOST_FAILED_NO_ANSWER;
     }
+    if (is_head) {
+        answer.length = 0; /* poller_net.c: the headers are the answer, one piece of no data */
+    }
     int32_t piece = round->kind == ROUND_PIECES ? round->size : HOST_DATA_CHUNK_MAX;
     int32_t ending = round->kind == ROUND_CUT ? STANDIN_CUT : round->kind == ROUND_FAILED_LATE ? STANDIN_FAILED : STANDIN_WHOLE;
     standin_data(request, item, status, answer.body, answer.length, piece, ending, HOST_FAILED_NO_ANSWER);
@@ -328,7 +331,7 @@ typedef struct {
     bool           is_updated;
     int32_t        request; /* otherwise an answer: a poll or a request's tag */
     int32_t        item;
-    bool           is_picked, is_ready, is_permitted;
+    bool           is_picked, is_ready, is_permitted, is_head;
     char           url[STANDIN_URL_BYTES];
     const round_t *round;
 } delivery_t;
@@ -343,7 +346,7 @@ static void give(const delivery_t *delivery)
         standin_alarm(delivery->alarm);
     } else {
         deliver(delivery->request, delivery->item, delivery->is_picked, delivery->url, delivery->is_ready,
-                delivery->is_permitted, delivery->round);
+                delivery->is_permitted, delivery->round, delivery->is_head);
     }
 }
 
@@ -402,6 +405,7 @@ static void answer_round(const round_t *round)
         host->request_count--;
         memmove(&host->requests[0], &host->requests[1], (size_t)host->request_count * sizeof host->requests[0]);
         delivery_t answer = { .alarm = -1, .request = request.tag, .item = -1, .round = round,
+                              .is_head = request.method == HOST_HTTP_HEAD,
                               .is_ready = standin_headers_ready(&request), .is_permitted = standin_url_allowed(request.url) };
         snprintf(answer.url, sizeof answer.url, "%s", request.url);
         hand(&answer);
