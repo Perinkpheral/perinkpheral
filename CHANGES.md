@@ -20,6 +20,18 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
   probation and refusing every update.
 - Recovery gives back what a failed start of an upload took.
 
+## next
+
+- A server that sends its answer a byte at a time no longer holds the device's one request,
+  and the radio, past the request's time: the connection is closed when the time is up, in the
+  middle of a read too.
+- Wi-Fi that does not start again after power saving stopped it is tried again every 5 seconds
+  while it is wanted, instead of staying off until a restart.
+- Every poll of 24 installed applications with four polls each is scheduled; polls past the
+  32nd never ran.
+- `poll_run()` asked again within a second from its poll's own answer runs when the second is
+  up, not a whole period later.
+
 ## 0.1.77
 
 - BACK held with UP or DOWN switches applications even when the whole chord is made while the
