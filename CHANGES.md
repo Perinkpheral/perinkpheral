@@ -21,6 +21,17 @@ the previous release. Notes appear on GitHub, in the flasher and on the device's
   A reopened form for the saved app closes after reloading to avoid saving stale values again.
 - A catalog entry with a malformed firmware minimum no longer stops the catalog from rendering.
 
+## next
+
+- Simulator reloads discard pending requests and answers from the previous run.
+- Simulator requests use current credentials and recheck destinations before sending.
+- Application builds reject setting defaults the device cannot load.
+- Application packages are checked against installer file and manifest limits.
+- Fixed-point division rounds large ratios without losing precision.
+- Ordinary CMake application builds refresh changed strings and pictures.
+- Publishing recognizes the official Perinkpheral application repository.
+- Binary PBM pictures keep raster bytes that resemble comments or whitespace.
+
 ## 0.1.78
 
 - A new firmware with no network stored is confirmed only when its setup access point is really
